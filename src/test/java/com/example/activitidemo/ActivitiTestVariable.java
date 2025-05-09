@@ -1,9 +1,9 @@
 package com.example.activitidemo;
 
-import org.activiti.engine.task.Task;
 import org.activiti.engine.*;
 import org.activiti.engine.repository.Deployment;
 import org.activiti.engine.runtime.ProcessInstance;
+import org.activiti.engine.task.Task;
 import org.junit.jupiter.api.Test;
 
 import java.util.HashMap;
@@ -15,10 +15,10 @@ import static java.lang.Thread.sleep;
 /*
 * 使用 Activiti 这种工作流框架大致都分为以下几个步骤：
 * 流程定义 -》 部署流程定义  -》 启动流程实例  -》  查询当前用户的待办任务  -》 完成任务*/
-public class ActivitiTest {
+public class ActivitiTestVariable {
    /* key-->  "leaveApplication" 是 xml文件定义的process id
       <process id="leaveApplication" name="请假流程定义" isExecutable="true">*/
-    String key = "leaveApplication";
+    String key = "leaveProcessVariable";
    public static String instanceId;
 
     public static String getInstanceId() {
@@ -26,17 +26,7 @@ public class ActivitiTest {
     }
 
     public static void setInstanceId(String instanceId) {
-        ActivitiTest.instanceId = instanceId;
-    }
-    public  static  void  main(String[] args) throws InterruptedException {
-        ActivitiTest activiti = new ActivitiTest();
-        activiti.testStartProcess();
-        sleep(1000);
-        activiti.applyLeave();
-        sleep(2000);
-        activiti.testFindPersonalTaskList();
-        sleep(1000);
-        activiti.approveLeave();
+        ActivitiTestVariable.instanceId = instanceId;
     }
 
     /**
@@ -59,7 +49,7 @@ public class ActivitiTest {
         RepositoryService repositoryService = processEngine.getRepositoryService();
 
         Deployment deploy =  repositoryService.createDeployment()
-                .addClasspathResource("bpmn/leaveApplication.bpmn20.xml").name("请假申请流程定义").deploy();
+                .addClasspathResource("bpmn/leaveProcessVariable.bpmn20.xml").name("请假申请流程定义").deploy();
 
         System.out.println("流程部署id：{}"+deploy.getId());
         System.out.println("流程部署id：{}"+deploy.getName());
@@ -73,8 +63,11 @@ public class ActivitiTest {
         /*RuntimeService：提供了处理流程实例不同步骤的结构和行为。包括启动流程实例、暂停和激活流程实例等功能*/
         RuntimeService runtimeService = processEngine.getRuntimeService();
         Map<String,Object>map = new HashMap<>();
+
         map.put("assignee0","提莫");
         map.put("assignee1","维迦");
+        map.put("assignee2","小炮");
+
         /*
          map 则是为其启动之后的流程实例赋值*/
         /*
@@ -94,7 +87,7 @@ public class ActivitiTest {
     /*查询个人待执行的人物--TaskService*/
     @Test
     public void testFindPersonalTaskList(){
-        String assignee="维迦";
+        String assignee="小炮";
         ProcessEngine processEngine = ProcessEngines.getDefaultProcessEngine();
         /*TaskService：提供有关任务相关功能的服务。包括任务的查询、删除以及完成等功能*/
         TaskService taskService = processEngine.getTaskService();
@@ -111,6 +104,7 @@ public class ActivitiTest {
             System.out.println("请假人："+taskService.getVariable(taskId,"leaveUser"));
             System.out.println("请假开始时间："+taskService.getVariable(taskId,"startDateTime"));
             System.out.println("请假结束时间："+taskService.getVariable(taskId,"endDateTime"));
+            System.out.println("请假天数："+taskService.getVariable(taskId,"day"));
             System.out.println("请假理由："+taskService.getVariable(taskId,"reason"));
 
         }
@@ -128,42 +122,67 @@ public class ActivitiTest {
         map.put("startDateTime",startDateTime);
         map.put("endDateTime",endDateTime);
         map.put("reason",leaveReason);
+        map.put("day",2);
+        Evection evection = new Evection(2);
+        map.put("evection",evection);
+
+
         /*完成任务*/
         ProcessEngine processEngine = ProcessEngines.getDefaultProcessEngine();
         TaskService taskService = processEngine.getTaskService();
-        /*singleResult() 是查询构建器模式中的一个方法，用于执行查询并期望返回单个结果*/
+
+
         Task task = taskService.createTaskQuery().processDefinitionKey(key)
                 .taskAssignee(assignee).singleResult();
         System.out.println("getInstanceId()"+ getInstanceId());
-//        Task task = taskService.createTaskQuery().processInstanceId(getInstanceId())
-//                .taskAssignee(assignee).singleResult();
+
+
         taskService.complete(task.getId(),map);
     }
 
     @Test
-    public void approveLeave(){
+    public void managerApprove(){
         String assignee = "维迦";
 
-        Map<String,Object>map = new HashMap<String,Object>();
-        map.put("approveUser",assignee);
-        map.put("approveStatus","通过");
-        map.put("approveOpinion","此次请假不影响工作，同意请假，祝顺利");
+
         /*完成任务*/
         ProcessEngine processEngine = ProcessEngines.getDefaultProcessEngine();
         TaskService taskService = processEngine.getTaskService();
-        /*singleResult() 是查询构建器模式中的一个方法，用于执行查询并期望返回单个结果*/
-//        Task task = taskService.createTaskQuery().processDefinitionKey(key)
-//                .taskAssignee(assignee).singleResult();
+        RuntimeService runtimeService = processEngine.getRuntimeService();
+
         List<Task> taskList = taskService.createTaskQuery().processDefinitionKey(key).taskAssignee(assignee).list();
-        /*通过流程实例id查询任务*/
-//        List<Task> taskList = taskService.createTaskQuery().processInstanceId(getInstanceId()).list();
+
         for (Task task:taskList){
-            taskService.complete(task.getId(),map);
+            Map<String, Object> currentVariables = runtimeService.getVariables(task.getProcessInstanceId());
+            System.out.println("当前流程变量: " + currentVariables);
+            currentVariables.put("managerUser",assignee);
+            currentVariables.put("approveStatus","通过");
+            currentVariables.put("managerOpinion","此次请假不影响工作，同意请假，祝顺利");
+            taskService.complete(task.getId(),currentVariables);
 
         }
 
     }
 
+    @Test
+    public void directorApprove(){
+        String assignee = "小炮";
 
+        /*完成任务*/
+        ProcessEngine processEngine = ProcessEngines.getDefaultProcessEngine();
+        TaskService taskService = processEngine.getTaskService();
+        RuntimeService runtimeService = processEngine.getRuntimeService();
+        List<Task> taskList = taskService.createTaskQuery().processDefinitionKey(key).taskAssignee(assignee).list();
+
+        for (Task task:taskList){
+            Map<String, Object> currentVariables = runtimeService.getVariables(task.getProcessInstanceId());
+            System.out.println("当前流程变量: " + currentVariables);
+            currentVariables.put("directorUser",assignee);
+            currentVariables.put("directorStatus","同意");
+            currentVariables.put("directorOpinion","同意");
+            taskService.complete(task.getId(),currentVariables);
+            System.out.println("请假审批完成...");
+        }
+    }
 
 }
