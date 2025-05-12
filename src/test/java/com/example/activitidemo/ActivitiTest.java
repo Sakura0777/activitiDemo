@@ -1,5 +1,6 @@
 package com.example.activitidemo;
 
+import org.activiti.engine.task.Comment;
 import org.activiti.engine.task.Task;
 import org.activiti.engine.*;
 import org.activiti.engine.repository.Deployment;
@@ -36,7 +37,7 @@ public class ActivitiTest {
         sleep(2000);
         activiti.testFindPersonalTaskList();
         sleep(1000);
-        activiti.approveLeave();
+        activiti.managerApprove();
     }
 
     /**
@@ -59,11 +60,22 @@ public class ActivitiTest {
         RepositoryService repositoryService = processEngine.getRepositoryService();
 
         Deployment deploy =  repositoryService.createDeployment()
-                .addClasspathResource("bpmn/leaveApplication.bpmn20.xml").name("请假申请流程定义").deploy();
+                .addClasspathResource("bpmn/leaveApplication.bpmn20.xml").name("请假申请流程定义-审批拒绝").deploy();
 
         System.out.println("流程部署id：{}"+deploy.getId());
         System.out.println("流程部署id：{}"+deploy.getName());
     }
+    /*删除流程定义*/
+    @Test void deleteProcessDefine(){
+        ProcessEngine processEngine = ProcessEngines.getDefaultProcessEngine();
+        RepositoryService repositoryService = processEngine.getRepositoryService();
+        List<Deployment> deployments = repositoryService.createDeploymentQuery().processDefinitionKey(key).list();
+        for (Deployment deployment : deployments) {
+            repositoryService.deleteDeployment(deployment.getId(),true);
+        }
+
+    }
+
     /*
     启动流程--RuntimeService
     */
@@ -75,6 +87,7 @@ public class ActivitiTest {
         Map<String,Object>map = new HashMap<>();
         map.put("assignee0","提莫");
         map.put("assignee1","维迦");
+        map.put("assignee2","小炮");
         /*
          map 则是为其启动之后的流程实例赋值*/
         /*
@@ -128,6 +141,7 @@ public class ActivitiTest {
         map.put("startDateTime",startDateTime);
         map.put("endDateTime",endDateTime);
         map.put("reason",leaveReason);
+
         /*完成任务*/
         ProcessEngine processEngine = ProcessEngines.getDefaultProcessEngine();
         TaskService taskService = processEngine.getTaskService();
@@ -141,12 +155,12 @@ public class ActivitiTest {
     }
 
     @Test
-    public void approveLeave(){
+    public void managerApprove(){
         String assignee = "维迦";
 
         Map<String,Object>map = new HashMap<String,Object>();
         map.put("approveUser",assignee);
-        map.put("approveStatus","通过");
+        map.put("managerApproveStatus",1);
         map.put("approveOpinion","此次请假不影响工作，同意请假，祝顺利");
         /*完成任务*/
         ProcessEngine processEngine = ProcessEngines.getDefaultProcessEngine();
@@ -158,11 +172,58 @@ public class ActivitiTest {
         /*通过流程实例id查询任务*/
 //        List<Task> taskList = taskService.createTaskQuery().processInstanceId(getInstanceId()).list();
         for (Task task:taskList){
+            taskService.addComment(task.getId(),task.getProcessInstanceId(),"addComment添加审批意见，同意");
+            taskService.addComment(task.getId(),task.getProcessInstanceId(),"addComment添加审批意见，同意55555555");
+            taskService.addComment(task.getId(),task.getProcessInstanceId(),"approveMsg","addComment添加审批意见-自定义type，同意");
             taskService.complete(task.getId(),map);
 
         }
 
     }
+    @Test
+    public void directorApprove(){
+        String assignee = "小炮";
+
+        Map<String,Object>map = new HashMap<String,Object>();
+        map.put("directorUser",assignee);
+        map.put("directorApproveStatus",1);
+        map.put("directorOpinion","此次请假不影响工作，同意请假，祝顺利");
+        /*完成任务*/
+        ProcessEngine processEngine = ProcessEngines.getDefaultProcessEngine();
+        TaskService taskService = processEngine.getTaskService();
+        /*singleResult() 是查询构建器模式中的一个方法，用于执行查询并期望返回单个结果*/
+//        Task task = taskService.createTaskQuery().processDefinitionKey(key)
+//                .taskAssignee(assignee).singleResult();
+        List<Task> taskList = taskService.createTaskQuery().processDefinitionKey(key).taskAssignee(assignee).list();
+        /*通过流程实例id查询任务*/
+//        List<Task> taskList = taskService.createTaskQuery().processInstanceId(getInstanceId()).list();
+        for (Task task:taskList){
+//            taskService.addComment(task.getId(),task.getProcessInstanceId(),"addComment添加审批意见，同意");
+//            taskService.addComment(task.getId(),task.getProcessInstanceId(),"addComment添加审批意见，同意55555555");
+//            taskService.addComment(task.getId(),task.getProcessInstanceId(),"approveMsg","addComment添加审批意见-自定义type，同意");
+            taskService.complete(task.getId(),map);
+
+        }
+
+    }
+    @Test
+    public void getApproveComment(){
+        ProcessEngine processEngine = ProcessEngines.getDefaultProcessEngine();
+        TaskService taskService = processEngine.getTaskService();
+        List<Comment> comments = taskService.getTaskComments("210007"); //默认查询comment类型的
+        List<Comment> commentsType = taskService.getTaskComments("210007","approveMsg"); //查询自定义的approveMsg类型
+        for (Comment comment : comments) {
+            System.out.println("审批流程id"+comment.getId());
+            System.out.println("审批意见类型"+comment.getType());
+            System.out.println("审批意见内容"+comment.getFullMessage());
+        }
+        for (Comment comment : commentsType) {
+            System.out.println("审批流程id"+comment.getId());
+            System.out.println("审批意见类型"+comment.getType());
+            System.out.println("审批意见内容"+comment.getFullMessage());
+        }
+    }
+
 
 
 
