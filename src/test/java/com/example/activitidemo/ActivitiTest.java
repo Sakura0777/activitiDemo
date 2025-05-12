@@ -186,7 +186,7 @@ public class ActivitiTest {
 
         Map<String,Object>map = new HashMap<String,Object>();
         map.put("directorUser",assignee);
-        map.put("directorApproveStatus",1);
+        map.put("directorApproveStatus",0);
         map.put("directorOpinion","此次请假不影响工作，同意请假，祝顺利");
         /*完成任务*/
         ProcessEngine processEngine = ProcessEngines.getDefaultProcessEngine();
