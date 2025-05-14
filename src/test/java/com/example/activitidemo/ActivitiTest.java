@@ -86,8 +86,8 @@ public class ActivitiTest {
         RuntimeService runtimeService = processEngine.getRuntimeService();
         Map<String,Object>map = new HashMap<>();
         map.put("assignee0","提莫");
-        map.put("assignee1","维迦");
-        map.put("assignee2","小炮");
+        map.put("assignee1","佐伊");
+        map.put("assignee2","盖伦");
         /*
          map 则是为其启动之后的流程实例赋值*/
         /*

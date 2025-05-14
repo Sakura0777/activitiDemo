@@ -14,6 +14,6 @@ public class ApproveRejectNotice implements JavaDelegate {
         System.out.println("*******审批拒绝*******"+delegateExecution.getParent());
         System.out.println("*******审批拒绝*******"+delegateExecution.getVariable("managerApproveStatus"));
         System.out.println("*******审批拒绝*******"+delegateExecution.getVariable("directorApproveStatus"));
-        
+
     }
 }
