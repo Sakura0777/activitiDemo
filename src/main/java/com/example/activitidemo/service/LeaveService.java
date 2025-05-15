@@ -7,10 +7,12 @@ import java.util.List;
 import java.util.Map;
 
 public interface LeaveService {
-    boolean newLeaveProcessByUserName(Map<String, Object> leaveInfo);
+    String newLeaveProcessByUserName(String userName);
 
-    List<Leave> getLeaveApproveByUserName(Map<String, Object> searchInfo);
+    boolean applyLeaveByProcessId(Map<String, String> leaveInfo);
+
+    List<Leave> getLeaveApproveByUserName(Map<String, String> searchInfo);
 
     /*审批待办任务 输入审批用户名、审批用户角色、任务id、审批意见、审批状态（0-拒绝 1-通过 2-驳回）*/
-    Boolean ApproveLeaveTask(Map<String, Object> approveInfo);
+    Boolean ApproveLeaveTask(Map<String, String> approveInfo);
 }

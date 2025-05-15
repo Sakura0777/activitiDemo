@@ -11,6 +11,6 @@ public class ManagerCompleteListener implements ExecutionListener {
     public void notify(DelegateExecution delegateExecution) {
         System.out.println("-------监听到事件------"+delegateExecution.getEventName());
         System.out.println("-------监听到事件------"+delegateExecution.getCurrentActivityId());
-        System.out.println("-------部门经理审批意见------"+delegateExecution.getVariable("managerApproveStatus"));
+        System.out.println("-------审批意见------"+delegateExecution.getVariable("approveStatus"));
     }
 }

@@ -12,26 +12,26 @@
     <sequenceFlow id="sid-b9321ebf-cf2d-4231-bc44-4a7a967b3c1f" sourceRef="sid-ce4f720e-6e45-4198-b89c-8b2c7406334f" targetRef="sid-0b69b1d8-f1b5-4712-953b-36b089a5c049"/>
     <sequenceFlow id="sid-e2cdb6ec-6856-4258-a4ff-3e5ba67a2c0b" sourceRef="sid-0b69b1d8-f1b5-4712-953b-36b089a5c049" targetRef="sid-46b3b784-bc2b-4469-8981-5e0296d9858e"/>
     <sequenceFlow id="sid-756f81f7-6adb-4f6a-98ef-678bbdf8e3aa" sourceRef="sid-46b3b784-bc2b-4469-8981-5e0296d9858e" targetRef="sid-57075f8c-4ab7-4c0d-bbc7-e86e2188c430">
-      <conditionExpression>${managerApproveStatus == 0}</conditionExpression>
+      <conditionExpression>${approveStatus == 2}</conditionExpression>
     </sequenceFlow>
     <userTask id="sid-94608b72-72b2-49e3-ac05-b5289992f608" name="部门总监审批" activiti:assignee="${assignee2}"/>
     <sequenceFlow id="sid-f540c4cd-0c41-4c5f-8141-d9a381aa9b98" sourceRef="sid-46b3b784-bc2b-4469-8981-5e0296d9858e" targetRef="sid-94608b72-72b2-49e3-ac05-b5289992f608">
-      <conditionExpression>${managerApproveStatus == 1}</conditionExpression>
+      <conditionExpression>${approveStatus == 1}</conditionExpression>
     </sequenceFlow>
     <endEvent id="sid-b86c1b3b-752c-40c7-9fce-0983d5ffd754"/>
     <sequenceFlow id="sid-c327179d-b6a7-4279-abd8-26d4e26c5367" sourceRef="sid-94608b72-72b2-49e3-ac05-b5289992f608" targetRef="sid-b86c1b3b-752c-40c7-9fce-0983d5ffd754">
-      <conditionExpression>${directorApproveStatus == 1}</conditionExpression>
+      <conditionExpression>${approveStatus == 4}</conditionExpression>
     </sequenceFlow>
     <sequenceFlow id="sid-5c633e83-af63-4df7-8af9-5fdb45ab3d32" sourceRef="sid-94608b72-72b2-49e3-ac05-b5289992f608" targetRef="sid-57075f8c-4ab7-4c0d-bbc7-e86e2188c430">
-      <conditionExpression>${directorApproveStatus == 0}</conditionExpression>
+      <conditionExpression>${approveStatus == 5}</conditionExpression>
     </sequenceFlow>
     <sequenceFlow id="sid-bb12b2a7-1173-4ff0-91a3-9ec79e2fe7f5" sourceRef="sid-57075f8c-4ab7-4c0d-bbc7-e86e2188c430" targetRef="sid-0dfbdafb-ddca-4546-a912-ad3ee98e0c6e"/>
     <sequenceFlow id="sid-d7d7e253-31ea-46ff-bc69-737a566021c7" sourceRef="sid-94608b72-72b2-49e3-ac05-b5289992f608" targetRef="sid-46b3b784-bc2b-4469-8981-5e0296d9858e">
-      <conditionExpression>${directorApproveStatus == 2}</conditionExpression>
+      <conditionExpression>${approveStatus == 6}</conditionExpression>
     </sequenceFlow>
     <serviceTask id="sid-57075f8c-4ab7-4c0d-bbc7-e86e2188c430" activiti:exclusive="true" name="自动结束审批流程" activiti:class="com.example.activitidemo.service.ApproveRejectNotice"/>
     <sequenceFlow id="sid-eca57817-1b65-4fe4-9ad2-cb8b5e01c57a" sourceRef="sid-46b3b784-bc2b-4469-8981-5e0296d9858e" targetRef="sid-0b69b1d8-f1b5-4712-953b-36b089a5c049">
-      <conditionExpression>${managerApproveStatus == 2}</conditionExpression>
+      <conditionExpression>${approveStatus == 3}</conditionExpression>
     </sequenceFlow>
   </process>
   <bpmndi:BPMNDiagram id="BPMNDiagram_leaveApplication">

@@ -18,11 +18,10 @@ public class Leave implements Serializable {
     private String startDate;
     private  Integer days;
     private  String reason;
+    private String approveStatus = "0"; //1 部门经理审批通过 2部门经理审批拒绝 3 部门经理审批驳回 4部门总监审批通过 5部门总监审批拒绝 6部门总监审批驳回
     private String approveRole;
     private String managerUser;
-    private String managerApproveStatus;
     private  String managerApproveOpinion;
     private String directorUser;
-    private String directorApproveStatus;
     private String directorApproveOpinion;
 }
