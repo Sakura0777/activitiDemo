@@ -16,7 +16,7 @@ import java.util.Map;
 public class ActivitiTestParallel {
    /* key-->  "leaveApplication" 是 xml文件定义的process id
       <process id="leaveApplication" name="请假流程定义" isExecutable="true">*/
-    String key = "leaveProcessParallel";
+    String key = "businessTravelProcessParallel";
    public static String instanceId;
 
     public static String getInstanceId() {
@@ -36,7 +36,16 @@ public class ActivitiTestParallel {
         ProcessEngine engine = ProcessEngines.getDefaultProcessEngine();//取默认的流程引擎实例
         System.out.println(engine);
     }
+    /*删除流程定义*/
+    @Test void deleteProcessDefine(){
+        ProcessEngine processEngine = ProcessEngines.getDefaultProcessEngine();
+        RepositoryService repositoryService = processEngine.getRepositoryService();
+        List<Deployment> deployments = repositoryService.createDeploymentQuery().processDefinitionKey("businessTravelProcessParallel").list();
+        for (Deployment deployment : deployments) {
+            repositoryService.deleteDeployment(deployment.getId(),true);
+        }
 
+    }
     /*
     *  部署流程--RespositoryService
     */
@@ -47,7 +56,7 @@ public class ActivitiTestParallel {
         RepositoryService repositoryService = processEngine.getRepositoryService();
 
         Deployment deploy =  repositoryService.createDeployment()
-                .addClasspathResource("bpmn/leaveProcessParallel.bpmn20.xml").name("出差申请审批流程并行网关").deploy();
+                .addClasspathResource("bpmn/businessTravelProcessParallel.bpmn20.xml").name("出差申请审批流程并行网关").deploy();
 
         System.out.println("流程部署id：{}"+deploy.getId());
         System.out.println("流程部署id：{}"+deploy.getName());
@@ -62,10 +71,10 @@ public class ActivitiTestParallel {
         RuntimeService runtimeService = processEngine.getRuntimeService();
         Map<String,Object>map = new HashMap<>();
 
-        map.put("assignee0","提莫");
-        map.put("assignee1","维迦");
-        map.put("assignee2","小炮");
-        map.put("assignee3","波比");
+        map.put("assignee0","拉克丝");
+        map.put("assignee1","佐伊");
+        map.put("assignee2","盖伦");
+        map.put("assignee3","黑默丁格");
 
         /*
          map 则是为其启动之后的流程实例赋值*/
@@ -100,18 +109,18 @@ public class ActivitiTestParallel {
             System.out.println("任务id:"+taskId);
             System.out.println("任务负责人："+task.getAssignee());
             System.out.println("任务名称："+task.getName());
-            System.out.println("请假人："+taskService.getVariable(taskId,"leaveUser"));
-            System.out.println("请假开始时间："+taskService.getVariable(taskId,"startDateTime"));
-            System.out.println("请假结束时间："+taskService.getVariable(taskId,"endDateTime"));
-            System.out.println("请假天数："+taskService.getVariable(taskId,"day"));
-            System.out.println("请假理由："+taskService.getVariable(taskId,"reason"));
+            System.out.println("申请人："+taskService.getVariable(taskId,"leaveUser"));
+            System.out.println("出差开始时间："+taskService.getVariable(taskId,"startDateTime"));
+            System.out.println("出差结束时间："+taskService.getVariable(taskId,"endDateTime"));
+            System.out.println("出差天数："+taskService.getVariable(taskId,"day"));
+            System.out.println("出差事由："+taskService.getVariable(taskId,"reason"));
 
         }
     }
 
     @Test
     public void applyLeave(){
-        String assignee = "提莫";
+        String assignee = "拉克丝";
         String startDateTime = "2025/05/07";
         String endDateTime = "2025/06/09 ";
         String leaveReason = "技术支撑出差一个月";
@@ -138,7 +147,7 @@ public class ActivitiTestParallel {
 
     @Test
     public void managerApprove(){
-        String assignee = "维迦";
+        String assignee = "佐伊";
 
 
         /*完成任务*/
@@ -152,8 +161,8 @@ public class ActivitiTestParallel {
             Map<String, Object> currentVariables = runtimeService.getVariables(task.getProcessInstanceId());
             System.out.println("当前流程变量: " + currentVariables);
             currentVariables.put("managerUser",assignee);
-            currentVariables.put("approveStatus","通过");
-            currentVariables.put("managerOpinion","此次出差工作已安排");
+            currentVariables.put("approveStatus",1);
+            currentVariables.put("managerOpinion","技术经理通过");
             taskService.complete(task.getId(),currentVariables);
 
         }
@@ -164,7 +173,7 @@ public class ActivitiTestParallel {
 
     @Test
 public void directorApprove() {
-    String assignee = "小炮";
+    String assignee = "盖伦";
 
     /*完成任务*/
     ProcessEngine processEngine = ProcessEngines.getDefaultProcessEngine();
@@ -176,10 +185,10 @@ public void directorApprove() {
         Map<String, Object> currentVariables = runtimeService.getVariables(task.getProcessInstanceId());
         System.out.println("当前流程变量: " + currentVariables);
         currentVariables.put("directorUser", assignee);
-        currentVariables.put("directorStatus", "同意");
+        currentVariables.put("approveStatus", 3);
         currentVariables.put("directorOpinion", "同意");
         taskService.complete(task.getId(), currentVariables);
-        System.out.println("技术经理审批完成...");
+        System.out.println("部门经理审批完成...");
     }
 }
     @Test
@@ -195,6 +204,9 @@ public void directorApprove() {
         for (Task task : taskList) {
             Map<String, Object> currentVariables = runtimeService.getVariables(task.getProcessInstanceId());
             System.out.println("当前流程变量: " + currentVariables);
+            currentVariables.put("bossUser", assignee);
+            currentVariables.put("approveStatus", 6);
+            currentVariables.put("bossOpinion", "同意");
             taskService.complete(task.getId(), currentVariables);
             System.out.println("出差审批完成...");
         }

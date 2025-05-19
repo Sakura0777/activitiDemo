@@ -13,6 +13,9 @@ public interface LeaveService {
 
     List<Leave> getLeaveApproveByUserName(Map<String, String> searchInfo);
 
+    /*通过用户名查询历史任务 */
+    List<Leave> getLeaveHistoryByUserName(Map<String, String> searchInfo);
+
     /*审批待办任务 输入审批用户名、审批用户角色、任务id、审批意见、审批状态（0-拒绝 1-通过 2-驳回）*/
     Boolean ApproveLeaveTask(Map<String, String> approveInfo);
 }

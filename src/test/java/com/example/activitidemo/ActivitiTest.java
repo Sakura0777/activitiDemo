@@ -1,5 +1,11 @@
 package com.example.activitidemo;
 
+import com.example.activitidemo.bean.Leave;
+import org.activiti.engine.history.HistoricProcessInstance;
+import org.activiti.engine.history.HistoricTaskInstance;
+import org.activiti.engine.history.HistoricVariableInstance;
+import org.activiti.engine.impl.HistoryServiceImpl;
+import org.activiti.engine.impl.identity.Authentication;
 import org.activiti.engine.task.Comment;
 import org.activiti.engine.task.Task;
 import org.activiti.engine.*;
@@ -7,6 +13,10 @@ import org.activiti.engine.repository.Deployment;
 import org.activiti.engine.runtime.ProcessInstance;
 import org.junit.jupiter.api.Test;
 
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -69,7 +79,7 @@ public class ActivitiTest {
     @Test void deleteProcessDefine(){
         ProcessEngine processEngine = ProcessEngines.getDefaultProcessEngine();
         RepositoryService repositoryService = processEngine.getRepositoryService();
-        List<Deployment> deployments = repositoryService.createDeploymentQuery().processDefinitionKey(key).list();
+        List<Deployment> deployments = repositoryService.createDeploymentQuery().processDefinitionKey("businessTravelProcessParallel").list();
         for (Deployment deployment : deployments) {
             repositoryService.deleteDeployment(deployment.getId(),true);
         }
@@ -85,9 +95,12 @@ public class ActivitiTest {
         /*RuntimeService：提供了处理流程实例不同步骤的结构和行为。包括启动流程实例、暂停和激活流程实例等功能*/
         RuntimeService runtimeService = processEngine.getRuntimeService();
         Map<String,Object>map = new HashMap<>();
-        map.put("assignee0","提莫");
+        map.put("assignee0","拉克丝");
         map.put("assignee1","佐伊");
         map.put("assignee2","盖伦");
+
+        // 5. 设置启动人
+        Authentication.setAuthenticatedUserId("拉克丝");
         /*
          map 则是为其启动之后的流程实例赋值*/
         /*
@@ -103,8 +116,77 @@ public class ActivitiTest {
         System.out.println("流程实例id:-----"+getInstanceId());
         System.out.println("当前活动的id:"+instance.getActivityId());
     }
+/*查詢查询某人已完成的任务*/
+    @Test
+    public void findDoneTaskList(){
+        ProcessEngine processEngine = ProcessEngines.getDefaultProcessEngine();
+         HistoryService historyService = processEngine.getHistoryService();
+         TaskService taskService = processEngine.getTaskService();
+//        List<HistoricTaskInstance> completedTasks = historyService
+//                .createHistoricTaskInstanceQuery()
+//                .processDefinitionKey(key)
+//                .taskAssignee("拉克丝") // 任务处理人
+//                .finished() // 仅已完成的任务
+//                .orderByHistoricTaskInstanceEndTime().desc()
+//                .list();
+        List<HistoricProcessInstance> processesStartedByUser = historyService
+                .createHistoricProcessInstanceQuery()
+                .startedBy("拉克丝") // 如 "admin"
+                .processDefinitionKey(key)
+//                .finished() // 可选：仅已完成的流程
+                .list();
+        System.out.println("共有多少个任务"+processesStartedByUser.size());
+        List<Leave> historyList = new ArrayList<>();
+        for (HistoricProcessInstance historicProcessInstance:processesStartedByUser){
+            System.out.println("%%%%%%%%%%%%%%%%当前用户发起的历史任务%%%%%% %%%%%%%%");
+            System.out.println(historicProcessInstance.getId());
+            List<HistoricVariableInstance> variables = historyService
+                    .createHistoricVariableInstanceQuery()
+                    .processInstanceId(historicProcessInstance.getId())
+                    .list();
+            System.out.println("所有流程变量"+variables);
+            // 获取特定变量的值
+            HistoricVariableInstance variable = historyService
+                    .createHistoricVariableInstanceQuery()
+                    .processInstanceId(historicProcessInstance.getId())
+                    .variableName("details")
+                    .singleResult();
 
-    /*查询个人待执行的人物--TaskService*/
+            if (variable != null) {
+                Leave value = (Leave) variable.getValue();
+                System.out.println("任务详情"+value.getUserName());
+                System.out.println("任务详情"+value.getReason());
+            }
+        }
+/*        System.out.println("共有多少个任务"+completedTasks.size());
+        for (HistoricTaskInstance historicTaskInstance:completedTasks){Task task =  taskService.createTaskQuery().processDefinitionKey(key).processInstanceId(historicTaskInstance.getProcessInstanceId()).singleResult();
+            System.out.println("%%%%%%%%%%%%%%%%历史任务%%%%%% %%%%%%%%");
+            System.out.println("流程实例id"+historicTaskInstance.getProcessInstanceId());
+
+            System.out.println(historicTaskInstance.getAssignee());
+            List<HistoricVariableInstance> variables = historyService
+                    .createHistoricVariableInstanceQuery()
+                    .processInstanceId(historicTaskInstance.getProcessInstanceId())
+                    .list();
+            System.out.println("所有流程变量"+variables);
+            // 获取特定变量的值
+            HistoricVariableInstance variable = historyService
+                    .createHistoricVariableInstanceQuery()
+                    .processInstanceId(historicTaskInstance.getProcessInstanceId())
+                    .variableName("details")
+                    .singleResult();
+
+            if (variable != null) {
+                Leave value = (Leave) variable.getValue();
+                System.out.println("任务详情"+value.getUserName());
+                System.out.println("任务详情"+value.getReason());
+            }
+
+
+        }*/
+    }
+
+    /*查询个人待执行的任务--TaskService*/
     @Test
     public void testFindPersonalTaskList(){
         String assignee="维迦";
@@ -131,17 +213,22 @@ public class ActivitiTest {
 
     @Test
     public void applyLeave(){
-        String assignee = "提莫";
+        String assignee = "拉克丝";
         String startDateTime = "2025/05/07 8:30";
         String endDateTime = "2025/05/09 17:30";
         String leaveReason = "考驾照";
 
         Map<String,Object>map = new HashMap<String,Object>();
-        map.put("leaveUser",assignee);
-        map.put("startDateTime",startDateTime);
-        map.put("endDateTime",endDateTime);
-        map.put("reason",leaveReason);
-
+        Leave leave = new  Leave();
+        ZonedDateTime now = ZonedDateTime.now(ZoneId.of("Asia/Shanghai"));
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+        String formattedDateTime = now.format(formatter);
+        leave.setDateTime(formattedDateTime);
+        leave.setUserName(assignee);
+        leave.setDays(3);
+        leave.setReason(leaveReason);
+        leave.setStartDate(startDateTime);
+        map.put("details",leave);
         /*完成任务*/
         ProcessEngine processEngine = ProcessEngines.getDefaultProcessEngine();
         TaskService taskService = processEngine.getTaskService();

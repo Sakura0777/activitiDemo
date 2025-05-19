@@ -17,11 +17,15 @@ public class LeaveController {
     private LeaveService leaveService = new LeaveServiceImpl();
 
     @RequestMapping(value = "/getLeaveApproveByUserName",method = RequestMethod.POST)
-    public List<Leave> getLeaveByUserId(@RequestBody Map<String, String> searchInfo){
+    public List<Leave> getLeaveApprove(@RequestBody Map<String, String> searchInfo){
         return leaveService.getLeaveApproveByUserName(searchInfo);
     }
+    @RequestMapping(value = "/getLeaveHistoryByUserName",method = RequestMethod.POST)
+    public List<Leave> getLeaveHistory(@RequestBody Map<String, String> searchInfo){
+        return leaveService.getLeaveHistoryByUserName(searchInfo);
+    }
     @PostMapping(value = "/newLeaveApplication")
-    public Boolean newLeaveApplication(@RequestBody Map<String,String> leaveInfo)  {
+    public Boolean newLeaveApprove(@RequestBody Map<String,String> leaveInfo)  {
         System.out.println("newLeaveApplication----"+leaveInfo);
         System.out.println("newLeaveApplication----"+leaveInfo.get("userName"));
         return leaveService.applyLeaveByProcessId(leaveInfo);
