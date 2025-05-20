@@ -3,7 +3,7 @@
   <process id="businessTravelProcessParallel" name="出差申请并行网关" isExecutable="true">
     <startEvent id="sid-97e258b2-54c0-4514-8d0a-14fcea53b220"/>
     <userTask xmlns:activiti="http://activiti.org/bpmn" id="sid-d2dcba9f-a65f-4222-a08b-6db1d6867d25" name="发起出差申请" activiti:assignee="${assignee0}"></userTask>
-    <userTask xmlns:activiti="http://activiti.org/bpmn" id="sid-cc3df21c-6e7b-4b0c-af66-62a92f7abb7a" name="部门经理审批" activiti:assignee="${assignee2}">
+    <userTask xmlns:activiti="http://activiti.org/bpmn" id="sid-cc3df21c-6e7b-4b0c-af66-62a92f7abb7a" name="技术总监审批" activiti:assignee="${assignee2}">
       <extensionElements/>
     </userTask>
     <endEvent id="sid-7bb38c4d-5666-4618-b0c5-c4a673045dee"/>
@@ -20,7 +20,7 @@
     <sequenceFlow id="sid-947414c5-959b-4c98-b642-57fe18dd1ac2" sourceRef="sid-29c661fb-7b87-45bd-b876-6d2c3ed06d0e" targetRef="sid-7bb38c4d-5666-4618-b0c5-c4a673045dee"/>
     <serviceTask xmlns:activiti="http://activiti.org/bpmn" id="sid-29c661fb-7b87-45bd-b876-6d2c3ed06d0e" activiti:exclusive="true" name="审批通过-发送通知" activiti:class="com.example.activitidemo.listener.BusinessTravelPassListener"></serviceTask>
     <serviceTask xmlns:activiti="http://activiti.org/bpmn" id="sid-76bb8d4f-6b77-43be-81fb-a406b1c58f06" activiti:exclusive="true" name="审批拒绝-发送通知" activiti:class="com.example.activitidemo.listener.BusinessTravelRejectListener"></serviceTask>
-    <userTask xmlns:activiti="http://activiti.org/bpmn" id="sid-b11baf64-2713-42e8-a8a8-f82514d9c267" name="技术经理审批" activiti:assignee="${assignee1}"></userTask>
+    <userTask xmlns:activiti="http://activiti.org/bpmn" id="sid-b11baf64-2713-42e8-a8a8-f82514d9c267" name="部门经理审批" activiti:assignee="${assignee1}"></userTask>
     <sequenceFlow id="sid-4f018fe5-ad56-40f3-9215-88609be0301f" sourceRef="sid-0c93409d-2b8f-4d28-b9ce-8561ce727b34" targetRef="sid-2a20236e-b0d0-4ed2-8edd-116141daed4a">
       <conditionExpression xsi:type="tFormalExpression"/>
     </sequenceFlow>
@@ -44,7 +44,7 @@
       <conditionExpression xsi:type="tFormalExpression">${approveStatus != 3}</conditionExpression>
     </sequenceFlow>
     <sequenceFlow id="sid-68a97fff-f30b-4f41-bbf6-ada1bfa8e3f6" sourceRef="sid-76bb8d4f-6b77-43be-81fb-a406b1c58f06" targetRef="sid-c6c5cae9-c770-4add-a8c3-9106ff750ef7"/>
-    <userTask id="sid-2a20236e-b0d0-4ed2-8edd-116141daed4a" name="总经理审批" xmlns:activiti="http://activiti.org/bpmn" activiti:assignee="${assignee3}"/>
+    <userTask xmlns:activiti="http://activiti.org/bpmn" id="sid-2a20236e-b0d0-4ed2-8edd-116141daed4a" name="总经理审批" activiti:assignee="${assignee3}"></userTask>
     <sequenceFlow id="sid-42061fcc-a072-4042-b12d-634f20491049" sourceRef="sid-2a20236e-b0d0-4ed2-8edd-116141daed4a" targetRef="sid-29c661fb-7b87-45bd-b876-6d2c3ed06d0e">
       <conditionExpression>${approveStatus == 5}</conditionExpression>
     </sequenceFlow>

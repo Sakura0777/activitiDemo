@@ -22,5 +22,5 @@ public interface TravelService {
     List<Travel> getTravelApproveByUserName(Map<String, String> searchInfo);
 
     /*通过用户名查询自己发起的审批任务 */
-    List<Leave> getTravelHistoryByUserName(Map<String, String> searchInfo);
+    List<Travel> getTravelHistoryByUserName(Map<String, String> searchInfo);
 }

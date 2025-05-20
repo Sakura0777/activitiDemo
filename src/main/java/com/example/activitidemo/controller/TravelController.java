@@ -1,5 +1,6 @@
 package com.example.activitidemo.controller;
 
+import com.example.activitidemo.bean.Leave;
 import com.example.activitidemo.bean.Travel;
 import com.example.activitidemo.service.TravelService;
 import com.example.activitidemo.service.TravelServiceImpl;
@@ -18,6 +19,10 @@ public class TravelController {
     @RequestMapping(value = "/getTravelApproveByUserName",method = RequestMethod.POST)
     public List<Travel> getTravelApprove(@RequestBody Map<String,String> searchInfo){
         return travelService.getTravelApproveByUserName(searchInfo);
+    }
+    @RequestMapping(value = "/getTravelHistoryByUserName",method = RequestMethod.POST)
+    public List<Travel> getLeaveHistory(@RequestBody Map<String, String> searchInfo){
+        return travelService.getTravelHistoryByUserName(searchInfo);
     }
 
     @PostMapping(value = "/newTravelApprove")

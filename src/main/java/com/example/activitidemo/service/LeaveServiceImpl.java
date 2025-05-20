@@ -94,7 +94,7 @@ public class LeaveServiceImpl implements LeaveService {
                 .startedBy(searchInfo.get("userName")) // 如 "admin"
                 .processDefinitionKey(key)
 //                .finished() // 可选：仅已完成的流程
-                .list();
+                .orderByProcessInstanceStartTime().desc().list();
         System.out.println("共有多少个任务"+processesStartedByUser.size());
         List<Leave> historyList = new ArrayList<>();
         for (HistoricProcessInstance historicProcessInstance:processesStartedByUser){

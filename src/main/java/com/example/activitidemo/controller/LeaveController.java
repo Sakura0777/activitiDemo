@@ -24,10 +24,10 @@ public class LeaveController {
     public List<Leave> getLeaveHistory(@RequestBody Map<String, String> searchInfo){
         return leaveService.getLeaveHistoryByUserName(searchInfo);
     }
-    @PostMapping(value = "/newLeaveApplication")
+    @PostMapping(value = "/newLeaveApprove")
     public Boolean newLeaveApprove(@RequestBody Map<String,String> leaveInfo)  {
-        System.out.println("newLeaveApplication----"+leaveInfo);
-        System.out.println("newLeaveApplication----"+leaveInfo.get("userName"));
+        System.out.println("newLeaveApprove----"+leaveInfo);
+        System.out.println("newLeaveApprove----"+leaveInfo.get("userName"));
         return leaveService.applyLeaveByProcessId(leaveInfo);
     }
     @PostMapping("/leaveTaskApprove")

@@ -47,7 +47,7 @@ public class TravelServiceImpl implements TravelService{
         }
 
         Travel travel = new Travel();
-        ZonedDateTime now = ZonedDateTime.now(ZoneId.of("Asia/Shangehai"));
+        ZonedDateTime now = ZonedDateTime.now(ZoneId.of("Asia/Shanghai"));
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
         String formattedDateTime = now.format(formatter);
         travel.setDateTime(formattedDateTime);
@@ -56,6 +56,8 @@ public class TravelServiceImpl implements TravelService{
         travel.setEndDate(travelInfo.get("endDate"));
         travel.setUserId(travelInfo.get("userId"));
         travel.setReason(travelInfo.get("reason"));
+        travel.setDays(Integer.valueOf(travelInfo.get("days")));
+        travel.setCity(travelInfo.get("city"));
 
         Task task = taskService.createTaskQuery().processInstanceId(processId)
                 .taskAssignee(travelInfo.get("userName")).singleResult();
@@ -72,17 +74,20 @@ public class TravelServiceImpl implements TravelService{
         审批状态 approveStatus（1 技术经理审批通过 2技术经理审批拒绝 3 部门经理审批通过 4部门经理审批驳回 5总经理审批通过 总经理审批拒绝）*/
     @Override
     public Boolean ApproveTravelTask(Map<String, String> approveInfo){
-        Task task =taskService.createTaskQuery().processDefinitionKey(key).processInstanceId(approveInfo.get("processId")).singleResult();
+        Task task =taskService.createTaskQuery().processDefinitionKey(key).processInstanceId(approveInfo.get("processId")).taskAssignee(approveInfo.get("approveUser")).singleResult();
         Travel details = (Travel) taskService.getVariable(task.getId(),"details");
         Map<String,Object> map = new HashMap<>();
         map.put("approveStatus",Integer.parseInt(approveInfo.get("approveStatus")));
-        details.setApproveStatus( approveInfo.get("approveStatus"));
+        details.setApproveStatus(approveInfo.get("approveStatus"));
         if(approveInfo.get("approveRole").equals("1")){
-            details.setDirectorApproveOpinion(approveInfo.get("approveOpinion"));
-        }else if(approveInfo.get("approveRole").equals("2")){
             details.setManagerApproveOpinion(approveInfo.get("approveOpinion"));
+            details.setManagerUser(approveInfo.get("approveUser"));
+        }else if(approveInfo.get("approveRole").equals("2")){
+            details.setDirectorApproveOpinion(approveInfo.get("approveOpinion"));
+            details.setDirectorUser(approveInfo.get("approveUser"));
         }else {
             details.setBossApproveOpinion(approveInfo.get("approveOpinion"));
+            details.setBossUser(approveInfo.get("approveUser"));
         }
         map.put("details",details);
         taskService.complete(task.getId(),map);
@@ -100,16 +105,16 @@ public class TravelServiceImpl implements TravelService{
     }
     /*通过用户名查询自己发起的审批任务 */
     @Override
-    public List<Leave> getTravelHistoryByUserName(Map<String, String> searchInfo){
+    public List<Travel> getTravelHistoryByUserName(Map<String, String> searchInfo){
         HistoryService historyService = processEngine.getHistoryService();
         List<HistoricProcessInstance> processesStartedByUser = historyService
                 .createHistoricProcessInstanceQuery()
                 .startedBy(searchInfo.get("userName")) // 如 "admin"
                 .processDefinitionKey(key)
 //                .finished() // 可选：仅已完成的流程
-                .list();
+                .orderByProcessInstanceStartTime().desc().list();
         System.out.println("共有多少个任务"+processesStartedByUser.size());
-        List<Leave> historyList = new ArrayList<>();
+        List<Travel> historyList = new ArrayList<>();
         for (HistoricProcessInstance historicProcessInstance:processesStartedByUser){
             System.out.println("%%%%%%%%%%%%%%%%当前用户发起的审批任务%%%%%% %%%%%%%%");
             System.out.println(historicProcessInstance.getId());
@@ -121,7 +126,7 @@ public class TravelServiceImpl implements TravelService{
                     .singleResult();
 
             if (variable != null) {
-                Leave value = (Leave) variable.getValue();
+                Travel value = (Travel) variable.getValue();
                 historyList.add(value);
             }
         }
