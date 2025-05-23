@@ -1,6 +1,8 @@
 package com.example.activitidemo.service;
 
+import com.example.activitidemo.bean.ApproveRequest;
 import com.example.activitidemo.bean.Leave;
+import com.example.activitidemo.bean.TaskSearchRequest;
 import com.example.activitidemo.bean.Travel;
 import org.activiti.engine.*;
 import org.activiti.engine.history.HistoricProcessInstance;
@@ -40,10 +42,10 @@ public class TravelServiceImpl implements TravelService{
     }
 
     @Override
-    public boolean applyTravelByProcessId(Map<String, String> travelInfo){
-        String processId = travelInfo.get("processId");
+    public boolean applyTravelByProcessId(Travel travelInfo){
+        String processId = travelInfo.getProcessId();
         if(processId == null || processId.isEmpty()){
-            processId = newTravelProcessByUserName(travelInfo.get("userName"));
+            processId = newTravelProcessByUserName(travelInfo.getUserName());
         }
 
         Travel travel = new Travel();
@@ -51,18 +53,21 @@ public class TravelServiceImpl implements TravelService{
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
         String formattedDateTime = now.format(formatter);
         travel.setDateTime(formattedDateTime);
-        travel.setUserName(travelInfo.get("userName"));
-        travel.setStartDate(travelInfo.get("startDate"));
-        travel.setEndDate(travelInfo.get("endDate"));
-        travel.setUserId(travelInfo.get("userId"));
-        travel.setReason(travelInfo.get("reason"));
-        travel.setDays(Integer.valueOf(travelInfo.get("days")));
-        travel.setCity(travelInfo.get("city"));
+        travel.setUserName(travelInfo.getUserName());
+        travel.setStartDate(travelInfo.getStartDate());
+        travel.setEndDate(travelInfo.getEndDate());
+        travel.setUserId(travelInfo.getUserId());
+        travel.setReason(travelInfo.getReason());
+        travel.setDays(travelInfo.getDays());
+        travel.setCity(travelInfo.getCity());
 
         Task task = taskService.createTaskQuery().processInstanceId(processId)
-                .taskAssignee(travelInfo.get("userName")).singleResult();
+                .taskAssignee(travelInfo.getUserName()).singleResult();
         Map<String,Object> travelMap = new HashMap<>();
         travel.setProcessId(processId);
+        travelMap.put("createUser",travelInfo.getUserName());
+        travelMap.put("taskName",travelInfo.getUserName()+"的出差申请");
+        travelMap.put("taskType","travel");
         travelMap.put("details",travel);
         taskService.complete(task.getId(),travelMap);
         return  true;
@@ -73,21 +78,22 @@ public class TravelServiceImpl implements TravelService{
         输入审批用户名、 userName 审批用户角色 approveRole、任务id processId、审批意见approveOpinion、
         审批状态 approveStatus（1 技术经理审批通过 2技术经理审批拒绝 3 部门经理审批通过 4部门经理审批驳回 5总经理审批通过 总经理审批拒绝）*/
     @Override
-    public Boolean ApproveTravelTask(Map<String, String> approveInfo){
-        Task task =taskService.createTaskQuery().processDefinitionKey(key).processInstanceId(approveInfo.get("processId")).taskAssignee(approveInfo.get("approveUser")).singleResult();
+    public Boolean ApproveTravelTask(ApproveRequest approveInfo){
+        Task task =taskService.createTaskQuery().processDefinitionKey(key)
+                .processInstanceId(approveInfo.getProcessId()).taskAssignee(approveInfo.getApproveUser()).singleResult();
         Travel details = (Travel) taskService.getVariable(task.getId(),"details");
         Map<String,Object> map = new HashMap<>();
-        map.put("approveStatus",Integer.parseInt(approveInfo.get("approveStatus")));
-        details.setApproveStatus(approveInfo.get("approveStatus"));
-        if(approveInfo.get("approveRole").equals("1")){
-            details.setManagerApproveOpinion(approveInfo.get("approveOpinion"));
-            details.setManagerUser(approveInfo.get("approveUser"));
-        }else if(approveInfo.get("approveRole").equals("2")){
-            details.setDirectorApproveOpinion(approveInfo.get("approveOpinion"));
-            details.setDirectorUser(approveInfo.get("approveUser"));
+        map.put("approveStatus",Integer.parseInt(approveInfo.getApproveStatus()));
+        details.setApproveStatus(approveInfo.getApproveStatus());
+        if(approveInfo.getApproveRole().equals("1")){
+            details.setManagerApproveOpinion(approveInfo.getApproveOpinion());
+            details.setManagerUser(approveInfo.getApproveUser());
+        }else if(approveInfo.getApproveRole().equals("2")){
+            details.setDirectorApproveOpinion(approveInfo.getApproveOpinion());
+            details.setDirectorUser(approveInfo.getApproveUser());
         }else {
-            details.setBossApproveOpinion(approveInfo.get("approveOpinion"));
-            details.setBossUser(approveInfo.get("approveUser"));
+            details.setBossApproveOpinion(approveInfo.getApproveOpinion());
+            details.setBossUser(approveInfo.getApproveUser());
         }
         map.put("details",details);
         taskService.complete(task.getId(),map);
@@ -95,8 +101,8 @@ public class TravelServiceImpl implements TravelService{
     }
     /*通过用户名查询待办出差审批*/
     @Override
-    public List<Travel> getTravelApproveByUserName(Map<String,String> searchInfo){
-        List<Task> taskList = taskService.createTaskQuery().processDefinitionKey(key).taskAssignee(searchInfo.get("userName")).list();
+    public List<Travel> getTravelApproveByUserName(TaskSearchRequest searchInfo){
+        List<Task> taskList = taskService.createTaskQuery().processDefinitionKey(key).taskAssignee(searchInfo.getUserName()).list();
         List<Travel> travelList = new ArrayList<>();
         for(Task task:taskList){
             travelList.add((Travel) taskService.getVariable(task.getId(),"details"));
@@ -105,11 +111,11 @@ public class TravelServiceImpl implements TravelService{
     }
     /*通过用户名查询自己发起的审批任务 */
     @Override
-    public List<Travel> getTravelHistoryByUserName(Map<String, String> searchInfo){
+    public List<Travel> getTravelHistoryByUserName(TaskSearchRequest searchInfo){
         HistoryService historyService = processEngine.getHistoryService();
         List<HistoricProcessInstance> processesStartedByUser = historyService
                 .createHistoricProcessInstanceQuery()
-                .startedBy(searchInfo.get("userName")) // 如 "admin"
+                .startedBy(searchInfo.getUserName()) // 如 "admin"
                 .processDefinitionKey(key)
 //                .finished() // 可选：仅已完成的流程
                 .orderByProcessInstanceStartTime().desc().list();

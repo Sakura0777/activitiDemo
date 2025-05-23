@@ -1,7 +1,10 @@
 package com.example.activitidemo.service;
 
+import com.example.activitidemo.bean.ApproveRequest;
 import com.example.activitidemo.bean.Leave;
 
+import com.example.activitidemo.bean.LeaveApplyRequest;
+import com.example.activitidemo.bean.TaskSearchRequest;
 import org.activiti.engine.*;
 import org.activiti.engine.history.HistoricProcessInstance;
 import org.activiti.engine.history.HistoricTaskInstance;
@@ -44,39 +47,42 @@ public class LeaveServiceImpl implements LeaveService {
         return  instance.getId();
     }
     @Override
-    public boolean applyLeaveByProcessId(Map<String, String> leaveInfo){
-        String processId = leaveInfo.get("processId");
+    public boolean applyLeaveByProcessId(LeaveApplyRequest leaveInfo){
+        String processId = leaveInfo.getProcessId();
         if(processId == null || processId.isEmpty()){
-            processId =  newLeaveProcessByUserName(leaveInfo.get("userName"));
+            processId =  newLeaveProcessByUserName(leaveInfo.getUserName());
         }
         Leave leave = new  Leave();
         ZonedDateTime now = ZonedDateTime.now(ZoneId.of("Asia/Shanghai"));
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
         String formattedDateTime = now.format(formatter);
         leave.setDateTime(formattedDateTime);
-        leave.setUserName(leaveInfo.get("userName"));
-        leave.setDays(Integer.parseInt(leaveInfo.get("days")));
-        leave.setReason(leaveInfo.get("reason"));
-        leave.setStartDate(leaveInfo.get("startDate"));
-        leave.setUserId(Integer.parseInt(leaveInfo.get("userId")));
+        leave.setUserName(leaveInfo.getUserName());
+        leave.setDays(Integer.parseInt(leaveInfo.getDays()));
+        leave.setReason(leaveInfo.getReason());
+        leave.setStartDate(leaveInfo.getStartDate());
+        leave.setUserId(Integer.parseInt(leaveInfo.getUserId()));
 //        发起申请
 
         Task task = taskService.createTaskQuery().processInstanceId(processId)
-                .taskAssignee(leaveInfo.get("userName")).singleResult();
+                .taskAssignee(leaveInfo.getUserName()).singleResult();
 
         Map<String,Object>leaveMap = new HashMap<String,Object>();
         leave.setProcessId(processId);
+        leaveMap.put("createUser",leaveInfo.getUserName());
+        leaveMap.put("taskName",leaveInfo.getUserName()+"的请假申请");
+        leaveMap.put("taskType","leave");
         leaveMap.put("details",leave);
         taskService.complete(task.getId(),leaveMap);
         return true;
     }
     /*通过用户名查询待办请假审批*/
     @Override
-    public List<Leave> getLeaveApproveByUserName(Map<String, String> searchInfo){
+    public List<Leave> getLeaveApproveByUserName(TaskSearchRequest searchInfo){
         System.out.println("---------------"+searchInfo);
 
         /*通过 TaskService 进行查询，分别通过请假流程的 key 和用户名称，查询该用户名下的所有任务*/
-        List<Task>  taskList = taskService.createTaskQuery().processDefinitionKey(key).taskAssignee(searchInfo.get("userName")).list();
+        List<Task>  taskList = taskService.createTaskQuery().processDefinitionKey(key).taskAssignee(searchInfo.getUserName()).list();
         List<Leave> leaveList = new ArrayList<>();
         for (Task task:taskList){
             System.out.println("---------------"+task.getId());
@@ -87,11 +93,11 @@ public class LeaveServiceImpl implements LeaveService {
     }
     /*通过用户名查询自己发起的审批任务 */
     @Override
-    public List<Leave> getLeaveHistoryByUserName(Map<String, String> searchInfo){
+    public List<Leave> getLeaveHistoryByUserName(TaskSearchRequest searchInfo){
         HistoryService historyService = processEngine.getHistoryService();
         List<HistoricProcessInstance> processesStartedByUser = historyService
                 .createHistoricProcessInstanceQuery()
-                .startedBy(searchInfo.get("userName")) // 如 "admin"
+                .startedBy(searchInfo.getUserName()) // 如 "admin"
                 .processDefinitionKey(key)
 //                .finished() // 可选：仅已完成的流程
                 .orderByProcessInstanceStartTime().desc().list();
@@ -120,20 +126,20 @@ public class LeaveServiceImpl implements LeaveService {
     输入审批用户名、 userName 审批用户角色 approveRole、任务id processId、审批意见approveOpinion、
     审批状态 approveStatus（0-拒绝 1-通过 2-驳回）*/
     @Override
-    public Boolean ApproveLeaveTask(Map<String, String> approveInfo){
-        Task task = taskService.createTaskQuery().processDefinitionKey(key).processInstanceId(approveInfo.get("processId")).singleResult();
+    public Boolean ApproveLeaveTask(ApproveRequest approveInfo){
+        Task task = taskService.createTaskQuery().processDefinitionKey(key).processInstanceId(approveInfo.getProcessId()).singleResult();
         Leave details = (Leave) taskService.getVariable(task.getId(),"details");
         System.out.println("details"+details);
         Map<String,Object>map = new HashMap<String,Object>();
 //        approveRole:1-项目经理 2项目总监 3人事
-        if(approveInfo.get("approveRole").equals("1") ){
-            map.put("approveStatus",Integer.parseInt(approveInfo.get("approveStatus")));
-            details.setApproveStatus( approveInfo.get("approveStatus"));
-            details.setManagerApproveOpinion(approveInfo.get("approveOpinion"));
-        } else if (approveInfo.get("approveRole").equals("2")){
-            map.put("approveStatus",Integer.parseInt( approveInfo.get("approveStatus")));
-            details.setApproveStatus(approveInfo.get("approveStatus"));
-            details.setDirectorApproveOpinion(approveInfo.get("approveOpinion"));
+        if(approveInfo.getApproveRole().equals("1") ){
+            map.put("approveStatus",Integer.parseInt(approveInfo.getApproveStatus()));
+            details.setApproveStatus( approveInfo.getApproveStatus());
+            details.setManagerApproveOpinion(approveInfo.getApproveOpinion());
+        } else if (approveInfo.getApproveRole().equals("2")){
+            map.put("approveStatus",Integer.parseInt( approveInfo.getApproveStatus()));
+            details.setApproveStatus(approveInfo.getApproveStatus());
+            details.setDirectorApproveOpinion(approveInfo.getApproveOpinion());
         }
         map.put("details",details);
         /*完成任务*/
