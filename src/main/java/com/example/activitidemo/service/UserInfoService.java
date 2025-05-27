@@ -6,4 +6,8 @@ import java.util.List;
 
 public interface UserInfoService {
     List<UserInfo> getAllUsers();
+    List<UserInfo> getUsersByRoleAndDept(String userRole,String department);
+
+    List<UserInfo> getUsersByUserName(String userName);
+
 }

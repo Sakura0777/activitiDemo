@@ -1,10 +1,7 @@
 package com.example.activitidemo.service;
 
-import com.example.activitidemo.bean.ApproveRequest;
-import com.example.activitidemo.bean.Leave;
+import com.example.activitidemo.bean.*;
 
-import com.example.activitidemo.bean.LeaveApplyRequest;
-import com.example.activitidemo.bean.TaskSearchRequest;
 import org.activiti.engine.*;
 import org.activiti.engine.history.HistoricProcessInstance;
 import org.activiti.engine.history.HistoricTaskInstance;
@@ -12,6 +9,7 @@ import org.activiti.engine.history.HistoricVariableInstance;
 import org.activiti.engine.impl.identity.Authentication;
 import org.activiti.engine.runtime.ProcessInstance;
 import org.activiti.engine.task.Task;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.ZoneId;
@@ -24,6 +22,8 @@ import java.util.Map;
 
 @Service("leaveService")
 public class LeaveServiceImpl implements LeaveService {
+    @Autowired
+    private UserInfoService userInfoService;
     String key = "leaveApplication";
     ProcessEngine processEngine = ProcessEngines.getDefaultProcessEngine();
     /*TaskService：提供有关任务相关功能的服务。包括任务的查询、删除以及完成等功能*/
@@ -36,8 +36,17 @@ public class LeaveServiceImpl implements LeaveService {
         RuntimeService runtimeService = processEngine.getRuntimeService();
         Map<String,Object> map = new HashMap<>();
         map.put("assignee0",userName);
-        map.put("assignee1","佐伊");
-        map.put("assignee2","盖伦");
+        UserInfo userInfo = userInfoService.getUsersByUserName(userName).get(0);
+        String department = userInfo.getDepartment();
+        UserInfo userInfo1 = userInfoService.getUsersByRoleAndDept("1",department).get(0);
+        UserInfo userInfo2 = userInfoService.getUsersByRoleAndDept("2",department).get(0);
+
+        System.out.println("++++++++++++++++++++++"+department);
+        System.out.println("++++++++++++++++++++++"+userInfo1.getUserName());
+        System.out.println("++++++++++++++++++++++"+userInfo2.getUserName());
+
+        map.put("assignee1",userInfo1.getUserName());
+        map.put("assignee2",userInfo2.getUserName());
         // 5. 设置启动人
         Authentication.setAuthenticatedUserId(userName);
         /*
@@ -76,6 +85,7 @@ public class LeaveServiceImpl implements LeaveService {
         taskService.complete(task.getId(),leaveMap);
         return true;
     }
+
     /*通过用户名查询待办请假审批*/
     @Override
     public List<Leave> getLeaveApproveByUserName(TaskSearchRequest searchInfo){

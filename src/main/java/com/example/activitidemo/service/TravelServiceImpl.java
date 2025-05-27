@@ -1,15 +1,13 @@
 package com.example.activitidemo.service;
 
-import com.example.activitidemo.bean.ApproveRequest;
-import com.example.activitidemo.bean.Leave;
-import com.example.activitidemo.bean.TaskSearchRequest;
-import com.example.activitidemo.bean.Travel;
+import com.example.activitidemo.bean.*;
 import org.activiti.engine.*;
 import org.activiti.engine.history.HistoricProcessInstance;
 import org.activiti.engine.history.HistoricVariableInstance;
 import org.activiti.engine.impl.identity.Authentication;
 import org.activiti.engine.runtime.ProcessInstance;
 import org.activiti.engine.task.Task;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.ZoneId;
@@ -22,6 +20,8 @@ import java.util.Map;
 
 @Service("travelService")
 public class TravelServiceImpl implements TravelService{
+    @Autowired
+            private UserInfoService userInfoService;
     String key = "businessTravelProcessParallel";
     ProcessEngine processEngine = ProcessEngines.getDefaultProcessEngine();
     /*TaskService：提供有关任务相关功能的服务。包括任务的查询、删除以及完成等功能*/
@@ -32,9 +32,18 @@ public class TravelServiceImpl implements TravelService{
         RuntimeService runtimeService = processEngine.getRuntimeService();
         Map<String,Object> map = new HashMap<>();
         map.put("assignee0",userName);
-        map.put("assignee1","佐伊");
-        map.put("assignee2","盖伦");
-        map.put("assignee3","黑默丁格");
+        UserInfo userInfo = userInfoService.getUsersByUserName(userName).get(0);
+        String department = userInfo.getDepartment();
+        UserInfo userInfo1 = userInfoService.getUsersByRoleAndDept("1",department).get(0);
+        UserInfo userInfo2 = userInfoService.getUsersByRoleAndDept("2",department).get(0);
+        UserInfo userInfo3 = userInfoService.getUsersByRoleAndDept("3","admin").get(0);
+        System.out.println("++++++++++++++++++++++"+department);
+        System.out.println("++++++++++++++++++++++"+userInfo1.getUserName());
+        System.out.println("++++++++++++++++++++++"+userInfo2.getUserName());
+
+        map.put("assignee1",userInfo1.getUserName());
+        map.put("assignee2",userInfo2.getUserName());
+        map.put("assignee3",userInfo3.getUserName());
         // 5. 设置启动人
         Authentication.setAuthenticatedUserId(userName);
         ProcessInstance instance = runtimeService.startProcessInstanceByKey(key,map);

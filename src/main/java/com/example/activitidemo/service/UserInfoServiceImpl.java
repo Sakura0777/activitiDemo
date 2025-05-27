@@ -15,4 +15,14 @@ public class UserInfoServiceImpl implements UserInfoService{
     public List<UserInfo> getAllUsers(){
         return userInfoMapper.getAllUsers();
     }
+
+    @Override
+    public List<UserInfo> getUsersByRoleAndDept(String userRole,String department) {
+        return userInfoMapper.getUsersByRoleAndDept(userRole,department);
+    }
+
+    @Override
+    public List<UserInfo> getUsersByUserName(String userName) {
+        return userInfoMapper.getUsersByUserName(userName);
+    }
 }
