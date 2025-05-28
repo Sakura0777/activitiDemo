@@ -21,7 +21,7 @@ import java.util.Map;
 @Service("travelService")
 public class TravelServiceImpl implements TravelService{
     @Autowired
-            private UserInfoService userInfoService;
+            private UserService userService;
     String key = "businessTravelProcessParallel";
     ProcessEngine processEngine = ProcessEngines.getDefaultProcessEngine();
     /*TaskService：提供有关任务相关功能的服务。包括任务的查询、删除以及完成等功能*/
@@ -32,18 +32,18 @@ public class TravelServiceImpl implements TravelService{
         RuntimeService runtimeService = processEngine.getRuntimeService();
         Map<String,Object> map = new HashMap<>();
         map.put("assignee0",userName);
-        UserInfo userInfo = userInfoService.getUsersByUserName(userName).get(0);
-        String department = userInfo.getDepartment();
-        UserInfo userInfo1 = userInfoService.getUsersByRoleAndDept("1",department).get(0);
-        UserInfo userInfo2 = userInfoService.getUsersByRoleAndDept("2",department).get(0);
-        UserInfo userInfo3 = userInfoService.getUsersByRoleAndDept("3","admin").get(0);
+        User user = userService.getUsersByUserName(userName).get(0);
+        String department = user.getDepartment();
+        User user1 = userService.getUsersByRoleAndDept("1",department).get(0);
+        User user2 = userService.getUsersByRoleAndDept("2",department).get(0);
+        User user3 = userService.getUsersByRoleAndDept("3","admin").get(0);
         System.out.println("++++++++++++++++++++++"+department);
-        System.out.println("++++++++++++++++++++++"+userInfo1.getUserName());
-        System.out.println("++++++++++++++++++++++"+userInfo2.getUserName());
+        System.out.println("++++++++++++++++++++++"+ user1.getUserName());
+        System.out.println("++++++++++++++++++++++"+ user2.getUserName());
 
-        map.put("assignee1",userInfo1.getUserName());
-        map.put("assignee2",userInfo2.getUserName());
-        map.put("assignee3",userInfo3.getUserName());
+        map.put("assignee1", user1.getUserName());
+        map.put("assignee2", user2.getUserName());
+        map.put("assignee3", user3.getUserName());
         // 5. 设置启动人
         Authentication.setAuthenticatedUserId(userName);
         ProcessInstance instance = runtimeService.startProcessInstanceByKey(key,map);
