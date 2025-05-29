@@ -7,6 +7,7 @@ import org.apache.ibatis.annotations.Param;
 import org.apache.ibatis.annotations.Select;
 
 import java.util.List;
+import java.util.Map;
 
 @Mapper
 public interface UserMapper {
@@ -22,10 +23,13 @@ public interface UserMapper {
     List<User> getUsersByRoleAndDept(@Param("userRole") String userRole, @Param("department") String department);
 
     @Select({
-            "select * from users where userName = #{userName}"
+            "select * from users where userName = #{userName} LIMIT 1"
     })
-    List<User> getUsersByUserName(@Param("userName") String userName);
-
+    Map<String,String> getUsersByUserName(@Param("userName") String userName);
+    @Select({
+            "select salt from users where userName = #{userName}"
+    })
+    String getSaltByUserName(@Param("userName") String userName);
     @Insert({
             "INSERT INTO users (userId, userName, userRole, password, department,salt) VALUES (#{userId}, #{userName}, #{userRole}, #{password}, #{department},#{salt})"
     })

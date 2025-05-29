@@ -79,7 +79,7 @@ public class ActivitiTest {
     @Test void deleteProcessDefine(){
         ProcessEngine processEngine = ProcessEngines.getDefaultProcessEngine();
         RepositoryService repositoryService = processEngine.getRepositoryService();
-        List<Deployment> deployments = repositoryService.createDeploymentQuery().processDefinitionKey("businessTravelProcessParallel").list();
+        List<Deployment> deployments = repositoryService.createDeploymentQuery().processDefinitionKey(key).list();
         for (Deployment deployment : deployments) {
             repositoryService.deleteDeployment(deployment.getId(),true);
         }

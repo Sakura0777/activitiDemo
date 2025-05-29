@@ -32,7 +32,7 @@ public class TravelServiceImpl implements TravelService{
         RuntimeService runtimeService = processEngine.getRuntimeService();
         Map<String,Object> map = new HashMap<>();
         map.put("assignee0",userName);
-        User user = userService.getUsersByUserName(userName).get(0);
+        User user = userService.getUsersByUserName(userName);
         String department = user.getDepartment();
         User user1 = userService.getUsersByRoleAndDept("1",department).get(0);
         User user2 = userService.getUsersByRoleAndDept("2",department).get(0);
@@ -65,7 +65,6 @@ public class TravelServiceImpl implements TravelService{
         travel.setUserName(travelInfo.getUserName());
         travel.setStartDate(travelInfo.getStartDate());
         travel.setEndDate(travelInfo.getEndDate());
-        travel.setUserId(travelInfo.getUserId());
         travel.setReason(travelInfo.getReason());
         travel.setDays(travelInfo.getDays());
         travel.setCity(travelInfo.getCity());

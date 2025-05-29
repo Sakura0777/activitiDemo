@@ -27,9 +27,16 @@ public class UserController {
 
     @PostMapping(value = "/checkUserName")
     public Boolean checkUserName(@RequestBody Map<String,String> request){
-        List<User> users = userService.getUsersByUserName(request.get("userName"));
-        System.out.println("checkUserName"+users.size());
-        return users.size() == 0;
+        User users = userService.getUsersByUserName(request.get("userName"));
+        System.out.println("checkUserName"+users.getUserName());
+        return users.getUserName()  == null;
+    }
+
+    @PostMapping(value = "/getSalt")
+    public String getSalt(@RequestBody Map<String,String> request){
+        String  salt =  userService.getSaltByUserName(request.get("userName"));
+        System.out.println("salt"+salt);
+        return  salt;
     }
 
     @PostMapping(value = "/newUser")
@@ -38,5 +45,9 @@ public class UserController {
         System.out.println("newUser"+isOK);
         return isOK;
 
+    }
+    @PostMapping(value = "/login")
+    public Map<String, String> login( @RequestBody Map<String,String> loginInfo){
+        return userService.Login(loginInfo);
     }
 }

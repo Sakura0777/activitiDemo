@@ -35,14 +35,14 @@ public class LeaveServiceImpl implements LeaveService {
         RuntimeService runtimeService = processEngine.getRuntimeService();
         Map<String,Object> map = new HashMap<>();
         map.put("assignee0",userName);
-        User user = userService.getUsersByUserName(userName).get(0);
+        User user = userService.getUsersByUserName(userName);
         String department = user.getDepartment();
         User user1 = userService.getUsersByRoleAndDept("1",department).get(0);
         User user2 = userService.getUsersByRoleAndDept("2",department).get(0);
 
-        System.out.println("++++++++++++++++++++++"+department);
-        System.out.println("++++++++++++++++++++++"+ user1.getUserName());
-        System.out.println("++++++++++++++++++++++"+ user2.getUserName());
+        System.out.println("请假申请"+department);
+        System.out.println("请假申请"+ user1.getUserName());
+        System.out.println("请假申请"+ user2.getUserName());
 
         map.put("assignee1", user1.getUserName());
         map.put("assignee2", user2.getUserName());
@@ -69,7 +69,6 @@ public class LeaveServiceImpl implements LeaveService {
         leave.setDays(Integer.parseInt(leaveInfo.getDays()));
         leave.setReason(leaveInfo.getReason());
         leave.setStartDate(leaveInfo.getStartDate());
-        leave.setUserId(Integer.parseInt(leaveInfo.getUserId()));
 //        发起申请
 
         Task task = taskService.createTaskQuery().processInstanceId(processId)

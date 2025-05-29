@@ -29,7 +29,7 @@
     <sequenceFlow id="sid-d7d7e253-31ea-46ff-bc69-737a566021c7" sourceRef="sid-94608b72-72b2-49e3-ac05-b5289992f608" targetRef="sid-46b3b784-bc2b-4469-8981-5e0296d9858e">
       <conditionExpression>${approveStatus == 6}</conditionExpression>
     </sequenceFlow>
-    <serviceTask id="sid-57075f8c-4ab7-4c0d-bbc7-e86e2188c430" activiti:exclusive="true" name="自动结束审批流程" activiti:class="com.example.activitidemo.service.ApproveRejectNotice"/>
+    <serviceTask id="sid-57075f8c-4ab7-4c0d-bbc7-e86e2188c430" activiti:exclusive="true" name="自动结束审批流程" activiti:class="com.example.activitidemo.listener.BussinessLeaveRejectListener"/>
     <sequenceFlow id="sid-eca57817-1b65-4fe4-9ad2-cb8b5e01c57a" sourceRef="sid-46b3b784-bc2b-4469-8981-5e0296d9858e" targetRef="sid-0b69b1d8-f1b5-4712-953b-36b089a5c049">
       <conditionExpression>${approveStatus == 3}</conditionExpression>
     </sequenceFlow>
@@ -93,6 +93,7 @@
       </bpmndi:BPMNShape>
       <bpmndi:BPMNEdge id="edge-1aa7b2d8-4e01-467e-8a91-63ea6ca5455e" bpmnElement="sid-eca57817-1b65-4fe4-9ad2-cb8b5e01c57a">
         <omgdi:waypoint x="-61.25" y="20.0"/>
+        <omgdi:waypoint x="-61.25" y="5.0"/>
         <omgdi:waypoint x="-61.25" y="-10.0"/>
       </bpmndi:BPMNEdge>
     </bpmndi:BPMNPlane>

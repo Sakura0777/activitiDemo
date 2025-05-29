@@ -5,8 +5,10 @@ import com.example.activitidemo.mapper.UserMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
-import java.util.UUID;
+import java.lang.reflect.InvocationTargetException;
+import java.util.*;
+
+import org.apache.commons.beanutils.BeanUtils;
 
 @Service("UserService")
 public class UserServiceImpl implements UserService{
@@ -23,8 +25,25 @@ public class UserServiceImpl implements UserService{
     }
 
     @Override
-    public List<User> getUsersByUserName(String userName) {
-        return userMapper.getUsersByUserName(userName);
+    public User getUsersByUserName(String userName)throws RuntimeException {
+
+        Map<String,String> map =  userMapper.getUsersByUserName(userName);
+        User user = new User();
+        try {
+            BeanUtils.populate(user, map);
+        } catch (IllegalAccessException | InvocationTargetException e) {
+            throw new RuntimeException(e);
+        }
+        return  user;
+    }
+
+    @Override
+    public String getSaltByUserName(String userName) {
+        String salt =  userMapper.getSaltByUserName(userName);
+        if(salt == null){
+           return  "noResult";
+        }
+        return  salt;
     }
 
     @Override
@@ -33,5 +52,26 @@ public class UserServiceImpl implements UserService{
         System.out.println("uuid"+userId);
         Integer rows =  userMapper.newUser(userId,user.getUserName(),user.getUserRole(),user.getPassword(),user.getDepartment(),user.getSalt());
         return rows != 0;
+    }
+
+    @Override
+    public Map<String, String> Login(Map<String, String> loginInfo) {
+        String name = loginInfo.get("userName");
+        String password = loginInfo.get("password");
+        System.out.println("name"+name);
+        User user = getUsersByUserName(name);
+        System.out.println("password"+password);
+        System.out.println("user"+user.getPassword());
+        Map<String,String> res = new HashMap<>();
+
+        if(Objects.equals(user.getPassword(), password)){
+            res.put("status","1");
+            res.put("userName",name);
+            res.put("userRole",user.getUserRole());
+            res.put("department",user.getDepartment());
+        }else{
+            res.put("status","0");
+        }
+        return  res;
     }
 }
